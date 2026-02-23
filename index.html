@@ -100,63 +100,21 @@ h1 {
 <body>
 
 <h1>Vusandeal</h1>
-<div id="product-list" class="grid"></div>
+<div style="margin-bottom:20px; display:flex; gap:10px; flex-wrap:wrap;">
+  <input 
+    type="text" 
+    id="searchInput" 
+    placeholder="Tìm sản phẩm..." 
+    style="padding:10px; border-radius:8px; border:1px solid #ccc; flex:1; min-width:200px;"
+  />
 
-<script>
-
-const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT3asJOHXUpIzBkgeSU2loB4_dd_FRi5coCT8kW9XvMDrE46ptGoKK0eBK0xy0q-xyndRq3-YLRnSrg/pub?output=csv";
-
-const container = document.getElementById("product-list");
-
-if (!container) {
-  console.error("Không tìm thấy id product-list");
-}
-
-function formatVND(number) {
-  return Number(number).toLocaleString('vi-VN') + "₫";
-}
-
-function getCategoryFromURL() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("cat");
-}
-
-fetch(csvUrl)
-  .then(response => response.text())
-  .then(csv => {
-    Papa.parse(csv, {
-      header: true,
-      skipEmptyLines: true,
-      complete: function(results) {
-
-        let products = results.data;
-
-        const urlCategory = getCategoryFromURL();
-
-        if (urlCategory) {
-          products = products.filter(p =>
-            p["Hạng mục (Category)"]?.trim().toLowerCase() === urlCategory.trim().toLowerCase()
-          );
-        }
-
-        products.forEach(product => {
-
-          if (!product["Tên sản phẩm"]) return;
-
-          const card = document.createElement("div");
-          card.className = "card";
-
-          card.innerHTML = `
-  <img src="${product["Link ảnh sản phẩm"]}" />
-  <div class="card-content">
-    <h3>${product["Tên sản phẩm"]}</h3>
-    <div class="price-old">${formatVND(product["Giá gốc"])}</div>
-    <div class="price-new">${formatVND(product["Giá giảm"])}</div>
-    <div class="badge">${product["Nhãn"]}</div>
-    <a class="btn-buy" href="${product["Link Affiliate Shopee"]}" target="_blank">
-      Mua ngay
-    </a>
-  </div>
+  <select 
+    id="categoryFilter" 
+    style="padding:10px; border-radius:8px; border:1px solid #ccc;"
+  >
+    <option value="">Tất cả danh mục</option>
+  </select>
+</div>
           `;
 
           container.appendChild(card);
