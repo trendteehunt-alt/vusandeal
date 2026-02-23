@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vusandeal</title>
+
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+<style>
+body {
+  font-family: Arial;
+  background: #f5f5f5;
+  margin: 0;
+  padding: 20px;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(200px,1fr));
+  gap: 20px;
+}
+.card {
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+}
+.card img {
+  width: 100%;
+}
+.price-old {
+  text-decoration: line-through;
+  color: gray;
+}
+.price-new {
+  color: red;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Vusandeal</h1>
+<div id="product-list" class="grid"></div>
+
+<script>
+
+const csvUrl = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT3asJOHXUpIzBkgeSU2loB4_dd_FRi5coCT8kW9XvMDrE46ptGoKK0eBK0xy0q-xyndRq3-YLRnSrg/pub?output=csv";
+
+const container = document.getElementById("product-list");
+
+if (!container) {
+  console.error("Không tìm thấy id product-list");
+}
+
+function formatVND(number) {
+  return Number(number).toLocaleString('vi-VN') + "₫";
+}
+
+function getCategoryFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("cat");
+}
+
+fetch(csvUrl)
+  .then(response => response.text())
+  .then(csv => {
+    Papa.parse(csv, {
+      header: true,
+      skipEmptyLines: true,
+      complete: function(results) {
+
+        let products = results.data;
+
+        const urlCategory = getCategoryFromURL();
+
+        if (urlCategory) {
+          products = products.filter(p =>
+            p["Hạng mục (Category)"]?.trim().toLowerCase() === urlCategory.trim().toLowerCase()
+          );
+        }
+
+        products.forEach(product => {
+
+          if (!product["Tên sản phẩm"]) return;
+
+          const card = document.createElement("div");
+          card.className = "card";
+
+          card.innerHTML = `
+            <img src="${product["Link ảnh sản phẩm"]}" />
+            <h3>${product["Tên sản phẩm"]}</h3>
+            <p class="price-old">${formatVND(product["Giá gốc"])}</p>
+            <p class="price-new">${formatVND(product["Giá giảm"])}</p>
+            <p>${product["Nhãn"]}</p>
+            <a href="${product["Link Affiliate Shopee"]}" target="_blank">Mua ngay</a>
+          `;
+
+          container.appendChild(card);
+        });
+
+      }
+    });
+  })
+  .catch(error => console.error("Lỗi fetch CSV:", error));
+
+</script>
+
+</body>
+</html>
